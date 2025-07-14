@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { humanizeText, detectAIContent } from './utils/ai';
 import Hero from './components/Hero';
 import HumanizerPage from './pages/HumanizerPage';
 import DetectorPage from './pages/DetectorPage';
@@ -35,7 +36,6 @@ export default function App() {
   };
 
   // --- AI Humanizer Logic ---
-  const { humanizeText } = require('./utils/ai');
   const handleHumanize = (text) => {
     if (!text.trim()) return;
     setIsProcessing(true);
@@ -48,7 +48,6 @@ export default function App() {
   };
 
   // --- AI Detector Logic ---
-  const { detectAIContent } = require('./utils/ai');
   const handleDetect = (text) => {
     const { score, breakdown } = detectAIContent(text);
     setAiScore(score);
