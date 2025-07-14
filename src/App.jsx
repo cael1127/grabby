@@ -1,105 +1,151 @@
-import { useState, useEffect } from 'react';
-import { humanizeText, detectAIContent } from './utils/ai';
+import React, { useState, useEffect } from 'react';
 import Hero from './components/Hero';
 import HumanizerPage from './pages/HumanizerPage';
 import DetectorPage from './pages/DetectorPage';
+import { humanizeText, detectAIContent } from './utils/ai';
 
 export default function App() {
-  // --- State Management ---
   const [activePage, setActivePage] = useState('humanizer');
   const [humanizerInput, setHumanizerInput] = useState('');
+  const [humanizerLevel, setHumanizerLevel] = useState(2);
   const [humanizerOutput, setHumanizerOutput] = useState('');
-  const [humanizeLevel, setHumanizeLevel] = useState(2); // 1: subtle, 2: balanced, 3: aggressive
-  const [detectorInput, setDetectorInput] = useState('');
-  const [aiScore, setAiScore] = useState(null);
-  const [aiBreakdown, setAiBreakdown] = useState(null);
-  const [isProcessing, setIsProcessing] = useState(false);
   const [humanizerHistory, setHumanizerHistory] = useState([]);
+  const [detectorInput, setDetectorInput] = useState('');
+  const [detectorOutput, setDetectorOutput] = useState(null);
   const [detectorHistory, setDetectorHistory] = useState([]);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  useEffect(() => {
-    const handleHashChange = () => {
-      const page = window.location.hash.replace('#', '');
-      if (page === 'detector') {
-        setActivePage('detector');
-      } else {
-        setActivePage('humanizer');
-      }
-    };
-    window.addEventListener('hashchange', handleHashChange);
-    handleHashChange();
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
+  const handleHumanize = async () => {
+    if (!humanizerInput.trim()) return;
+    
+    setIsProcessing(true);
+    try {
+      const result = humanizeText(humanizerInput, humanizerLevel);
+      setHumanizerOutput(result);
+      
+      // Add to history
+      const newEntry = {
+        id: Date.now(),
+        input: humanizerInput,
+        output: result,
+        level: humanizerLevel,
+        timestamp: new Date().toLocaleString()
+      };
+      setHumanizerHistory(prev => [newEntry, ...prev.slice(0, 9)]);
+    } catch (error) {
+      console.error('Humanization error:', error);
+      setHumanizerOutput('Error processing text. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleDetect = async () => {
+    if (!detectorInput.trim()) return;
+    
+    setIsProcessing(true);
+    try {
+      const result = detectAIContent(detectorInput);
+      setDetectorOutput(result);
+      
+      // Add to history
+      const newEntry = {
+        id: Date.now(),
+        input: detectorInput,
+        score: result.score,
+        breakdown: result.breakdown,
+        timestamp: new Date().toLocaleString()
+      };
+      setDetectorHistory(prev => [newEntry, ...prev.slice(0, 9)]);
+    } catch (error) {
+      console.error('Detection error:', error);
+      setDetectorOutput({ score: 0, breakdown: [] });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleClear = (type) => {
+    if (type === 'humanizer') {
+      setHumanizerInput('');
+      setHumanizerOutput('');
+    } else {
+      setDetectorInput('');
+      setDetectorOutput(null);
+    }
+  };
 
   const navigateTo = (page) => {
-    window.location.hash = page;
-  };
-
-  // --- AI Humanizer Logic ---
-  const handleHumanize = (text) => {
-    if (!text.trim()) return;
-    setIsProcessing(true);
-    setTimeout(() => {
-      const result = humanizeText(text, humanizeLevel);
-      setHumanizerOutput(result);
-      setIsProcessing(false);
-      setHumanizerHistory((prev) => [{ input: text, output: result, level: humanizeLevel, timestamp: Date.now() }, ...prev].slice(0, 5));
-    }, 1200);
-  };
-
-  // --- AI Detector Logic ---
-  const handleDetect = (text) => {
-    const { score, breakdown } = detectAIContent(text);
-    setAiScore(score);
-    setAiBreakdown(breakdown);
-    setDetectorHistory((prev) => [{ input: text, score, breakdown, timestamp: Date.now() }, ...prev].slice(0, 5));
-  };
-  const handleResetDetector = () => {
-    setAiScore(null);
-    setAiBreakdown(null);
-    setDetectorInput('');
+    setActivePage(page);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white font-sans">
-      <Hero activePage={activePage} navigateTo={navigateTo} />
-      <main className="container mx-auto px-4 pb-16">
-        {activePage === 'humanizer' ? (
-          <HumanizerPage
-            input={humanizerInput}
-            setInput={setHumanizerInput}
-            level={humanizeLevel}
-            setLevel={setHumanizeLevel}
-            isProcessing={isProcessing}
-            onHumanize={handleHumanize}
-            onClear={() => { setHumanizerOutput(''); setHumanizerInput(''); }}
-            output={humanizerOutput}
-            history={humanizerHistory}
-            setHumanizerInput={setHumanizerInput}
-          />
-        ) : (
-          <DetectorPage
-            input={detectorInput}
-            setInput={setDetectorInput}
-            isProcessing={false}
-            onDetect={handleDetect}
-            onReset={handleResetDetector}
-            aiScore={aiScore}
-            aiBreakdown={aiBreakdown}
-            history={detectorHistory}
-            setDetectorInput={setDetectorInput}
-          />
-        )}
-      </main>
-      <footer className="py-8 border-t border-gray-700 mt-12">
-        <div className="container mx-auto px-4 text-center text-gray-500 text-sm">
-          © {new Date().getFullYear()} AI Humanizer & Detector. All rights reserved.
+    <div className="min-h-screen bg-gray-900 text-white">
+      <div className="container mx-auto px-4 py-8">
+        <Hero />
+        
+        {/* Navigation */}
+        <div className="flex justify-center gap-4 mb-8">
+          <button
+            onClick={() => navigateTo('humanizer')}
+            className={`px-8 py-3 rounded-full font-semibold text-lg shadow-lg transition-all ${
+              activePage === 'humanizer' 
+                ? 'bg-blue-600 text-white' 
+                : 'bg-gray-700 text-blue-200 hover:bg-blue-700 hover:text-white'
+            }`}
+          >
+            AI Humanizer
+          </button>
+          <button
+            onClick={() => navigateTo('detector')}
+            className={`px-8 py-3 rounded-full font-semibold text-lg shadow-lg transition-all ${
+              activePage === 'detector' 
+                ? 'bg-red-600 text-white' 
+                : 'bg-gray-700 text-red-200 hover:bg-red-700 hover:text-white'
+            }`}
+          >
+            AI Detector
+          </button>
         </div>
-      </footer>
-      <style>{`
-        .animate-fade-in { animation: fadeIn 0.7s cubic-bezier(.4,0,.2,1) both; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
-      `}</style>
+
+        {/* Main Content */}
+        <main>
+          {activePage === 'humanizer' && (
+            <HumanizerPage
+              input={humanizerInput}
+              setInput={setHumanizerInput}
+              level={humanizerLevel}
+              setLevel={setHumanizerLevel}
+              isProcessing={isProcessing}
+              onHumanize={handleHumanize}
+              onClear={() => handleClear('humanizer')}
+              output={humanizerOutput}
+              history={humanizerHistory}
+              setHumanizerInput={setHumanizerInput}
+            />
+          )}
+          
+          {activePage === 'detector' && (
+            <DetectorPage
+              input={detectorInput}
+              setInput={setDetectorInput}
+              isProcessing={isProcessing}
+              onDetect={handleDetect}
+              onClear={() => handleClear('detector')}
+              aiScore={detectorOutput?.score}
+              aiBreakdown={detectorOutput?.breakdown}
+              history={detectorHistory}
+              setDetectorInput={setDetectorInput}
+            />
+          )}
+        </main>
+
+        {/* Footer */}
+        <footer className="text-center py-8 text-gray-400 text-sm">
+          <p>Advanced AI Humanizer & Detector - Inspired by ZeroGPT and Grubby AI</p>
+          <p className="mt-2">Privacy-first, client-side processing</p>
+        </footer>
+      </div>
     </div>
   );
 } 

@@ -12,9 +12,14 @@ export default function HumanizerPage({
       <div className="text-center mb-10">
         <h2 className="text-3xl md:text-4xl font-bold mb-2 flex items-center justify-center gap-2">
           <svg className="w-7 h-7 text-blue-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4L4 8V16L12 20L20 16V8L12 4Z" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 4V20" /><path strokeLinecap="round" strokeLinejoin="round" d="M20 16L22 18" /><path strokeLinecap="round" strokeLinejoin="round" d="M4 16L2 18" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 8V16" /></svg>
-          Humanizer
+          AI Humanizer
         </h2>
-        <p className="text-gray-300 max-w-xl mx-auto">Convert AI-generated content into natural-sounding human writing while maintaining meaning. <span className="inline-block bg-blue-900/40 rounded px-2 py-0.5 ml-1 text-xs text-blue-200">New: History & Modern UI</span></p>
+        <p className="text-gray-300 max-w-xl mx-auto">
+          Transform AI-generated content into natural, human-like writing using advanced algorithms. 
+          Our sophisticated humanization engine applies multiple layers of natural language processing 
+          to make AI text indistinguishable from human writing.
+          <span className="inline-block bg-blue-900/40 rounded px-2 py-0.5 ml-1 text-xs text-blue-200">Advanced NLP</span>
+        </p>
       </div>
       <HumanizerForm
         input={input}
