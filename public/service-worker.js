@@ -15,6 +15,14 @@ self.addEventListener('install', (event) => {
   );
 });
 
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'REMINDER') {
+    self.registration.showNotification('Reminder', {
+      body: event.data.text,
+    });
+  }
+});
+
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request)

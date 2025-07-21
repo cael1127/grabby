@@ -1,15 +1,27 @@
 import React, { useState } from 'react';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 
-const Chatbot = () => {
+const Chatbot = ({ addReminder }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [continuousListening, setContinuousListening] = useState(false);
+  const commands = [
+    {
+      command: 'remind me to *',
+      callback: (item) => {
+        addReminder(item);
+        resetTranscript();
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({ type: 'REMINDER', text: item });
+        }
+      },
+    },
+  ];
   const {
     transcript,
     listening,
     resetTranscript,
     browserSupportsSpeechRecognition
-  } = useSpeechRecognition();
+  } = useSpeechRecognition({ commands });
 
   const toggleChatbot = () => {
     setIsOpen(!isOpen);
